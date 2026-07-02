@@ -1061,12 +1061,18 @@ public propTask()
     new eProp[PROP]
     for ( new id = 1; id <= g_iMaxPlayers; id ++ )
     {
-        if ( !is_user_alive(id)
-        || !g_ePlayerData[id][PDATA_PROP_GHOST]
-        || propGet(eProp, g_ePlayerData[id][PDATA_PROP_GHOST]) == -1 )
+        if ( !is_user_alive(id) )
             continue
 
-        propTrace(eProp, id)
+        if ( !g_ePlayerData[id][PDATA_PROP_GHOST] )
+        {
+            if ( g_ePlayerData[id][PDATA_PROP_ACTION] )
+                propCheck(id)
+        }
+        else if ( propGet(eProp, g_ePlayerData[id][PDATA_PROP_GHOST]) != -1 )
+        {
+            propTrace(eProp, id)
+        }
     }
 }
 
@@ -1445,6 +1451,64 @@ stock propTrace(eProp[PROP], id)
     propSetBox(eProp)
     propSetOffset(eProp)
     set_pev(eProp[PROP_ID], pev_origin, eProp[PROP_ORIGIN])
+}
+
+stock propCheck(id)
+{
+    new eProp[PROP], Float:fVec1[3], Float:fVec2[3], Float:fForward[3]
+    new iBest, Float:fBestDist, Float:fTraceLength, Float:fDot, Float:fDist
+
+    pev(id, pev_origin, fVec1)
+    pev(id, pev_view_ofs, fVec2)
+    xs_vec_add(fVec1, fVec2, fVec1)
+
+    pev(id, pev_v_angle, fForward)
+    engfunc(EngFunc_MakeVectors, fForward)
+    global_get(glb_v_forward, fForward)
+
+    xs_vec_mul_scalar(fForward, 9999.9, fVec2)
+    xs_vec_add(fVec2, fVec1, fVec2)
+
+    engfunc(EngFunc_TraceLine, fVec1, fVec2, DONT_IGNORE_MONSTERS, id, 0)
+    get_tr2(0, TR_vecEndPos, fVec2)
+
+    iBest = -1
+    fBestDist = 20.0
+    fTraceLength = get_distance_f(fVec1, fVec2)
+
+    for ( new i = 0; i < g_iProp; i ++ )
+    {
+        ArrayGetArray(g_aProp, i, eProp)
+        xs_vec_sub(eProp[PROP_ORIGIN], fVec1, fVec2)
+        fDot = xs_vec_dot(fVec2, fForward)
+
+        if ( fDot < 0.0 || fDot > fTraceLength )
+            continue
+
+        xs_vec_copy(fForward, fVec2)
+        xs_vec_mul_scalar(fVec2, fDot, fVec2)
+        xs_vec_add(fVec2, fVec1, fVec2)
+
+        fDist = get_distance_f(eProp[PROP_ORIGIN], fVec2)
+        if ( fDist < fBestDist )
+        {
+            fBestDist = fDist
+            iBest = i
+        }
+    }
+
+    if ( iBest != -1
+    && g_ePlayerData[id][PDATA_PROP_MENU] != iBest )
+    {
+        ArrayGetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
+        eProp[PROP_FLAGS] &= ~FLAG_SELECT
+        ArraySetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
+
+        ArrayGetArray(g_aProp, iBest, eProp)
+        eProp[PROP_FLAGS] |= FLAG_SELECT
+        ArraySetArray(g_aProp, iBest, eProp)
+        g_ePlayerData[id][PDATA_PROP_MENU] = iBest
+    }
 }
 
 stock propSetBox(eProp[PROP])

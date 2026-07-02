@@ -2,8 +2,6 @@
 PROP_CHAT_TAG                     = ^4[PROP MANAGER]^1
 PROP_CHAT_LIMIT                   = You've reached the maximum number of Props ^4%d
 PROP_CHAT_NO_PROP                 = There are no Props available
-PROP_CHAT_NO_DATA                 = Prop data hasn't been found
-PROP_CHAT_NO_ACTION               = Prop action is disabled
 PROP_CHAT_CREATE_NEW              = ^3%s ^1created
 PROP_CHAT_STATUS_CURRENT          = ^3%s ^1is %L
 PROP_CHAT_STATUS_ALL_SHOW         = All Props are now Shown
