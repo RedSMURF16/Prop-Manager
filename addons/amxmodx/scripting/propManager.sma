@@ -100,6 +100,13 @@ enum
     SHOW_FORCE_HIDE
 }
 
+enum
+{
+    ROTATE_MODE_PITCH,
+    ROTATE_MODE_YAW,
+    ROTATE_MODE_ROLL
+}
+
 enum _:MAIN_SETTINGS
 {
     SETTING_DEFAULT_MODEL[MAX_RESOURCE_PATH_LENGTH],
@@ -147,6 +154,7 @@ enum _:PLAYER_DATA
     PDATA_PROP_GHOST,
     PDATA_PROP_MENU,
     bool:PDATA_PROP_ACTION,
+    PDATA_ROTATE_MODE,
     Float:PDATA_OFFSET,
     Float:PDATA_NEXT_OFFSET
 }
@@ -200,12 +208,11 @@ enum
 
 enum
 {
-    ROTATE_RIGHT,
-    ROTATE_LEFT,
     ROTATE_UP,
     ROTATE_DOWN,
 
-    ROTATE_GROUND = 5,
+    ROTATE_GROUND = 3,
+    ROTATE_MODE,
     ROTATE_PLACE
 }
 
@@ -241,6 +248,7 @@ new Array:g_aProp,
 new g_szShow[][] = {"PROP_DEFAULT", "PROP_SHOWN", "PROP_HIDDEN"}
 new g_szShowChat[][] = {"PROP_CHAT_DEFAULT", "PROP_CHAT_SHOWN", "PROP_CHAT_HIDDEN"}
 new g_szShowColor[][] = {"\d", "\y", "\r"}
+new g_szRotateMode[][] = {"PROP_ROTATE_PITCH", "PROP_ROTATE_YAW", "PROP_ROTATE_ROLL"}
 
 public plugin_init()
 {
@@ -931,12 +939,6 @@ public menuRotate(id, iMenu)
         return
     }
 
-    formatex(szItem, charsmax(szItem), "%L", id, "PROP_ROTATE_RIGHT")
-    menu_additem(iMenu, szItem)
-
-    formatex(szItem, charsmax(szItem), "%L", id, "PROP_ROTATE_LEFT")
-    menu_additem(iMenu, szItem)
-
     formatex(szItem, charsmax(szItem), "%L", id, "PROP_ROTATE_UP")
     menu_additem(iMenu, szItem)
 
@@ -947,6 +949,9 @@ public menuRotate(id, iMenu)
 
     formatex(szItem, charsmax(szItem), "%L", id, "PROP_ROTATE_GROUND",
     id, eProp[PROP_FLAGS] & FLAG_GROUND ? "PROP_ON" : "PROP_OFF")
+    menu_additem(iMenu, szItem)
+
+    formatex(szItem, charsmax(szItem), "%L", id, "PROP_ROTATE_MODE", id, g_szRotateMode[g_ePlayerData[id][PDATA_ROTATE_MODE]])
     menu_additem(iMenu, szItem)
 
     formatex(szItem, charsmax(szItem), "%L", id, "PROP_ROTATE_PLACE")
@@ -964,35 +969,11 @@ public menuHandlerRotate(id, menu, item)
 
     switch( item )
     {
-        case ROTATE_RIGHT:
-        {
-            pev(eProp[PROP_ID], pev_angles, eProp[PROP_ANGLES])
-            eProp[PROP_ANGLES][1] -= 22.5
-            if ( eProp[PROP_ANGLES][1] < -180.0 ) eProp[PROP_ANGLES][1] += 360.0
-
-            set_pev(eProp[PROP_ID], pev_angles, eProp[PROP_ANGLES])
-            ArraySetArray(g_aProp, iItem, eProp)
-
-            propSound(id, SOUND_MENU_NAV)
-            propMenu(id, MENU_ROTATE)
-        }
-        case ROTATE_LEFT:
-        {
-            pev(eProp[PROP_ID], pev_angles, eProp[PROP_ANGLES])
-            eProp[PROP_ANGLES][1] += 22.5
-            if ( eProp[PROP_ANGLES][1] > 180.0 ) eProp[PROP_ANGLES][1] -= 360.0
-
-            set_pev(eProp[PROP_ID], pev_angles, eProp[PROP_ANGLES])
-            ArraySetArray(g_aProp, iItem, eProp)
-
-            propSound(id, SOUND_MENU_NAV)
-            propMenu(id, MENU_ROTATE)
-        }
         case ROTATE_UP:
         {
             pev(eProp[PROP_ID], pev_angles, eProp[PROP_ANGLES])
-            eProp[PROP_ANGLES][0] -= 22.5
-            if ( eProp[PROP_ANGLES][0] < -180.0 ) eProp[PROP_ANGLES][0] += 360.0
+            eProp[PROP_ANGLES][g_ePlayerData[id][PDATA_ROTATE_MODE]] -= 22.5
+            if ( eProp[PROP_ANGLES][g_ePlayerData[id][PDATA_ROTATE_MODE]] < -180.0 ) eProp[PROP_ANGLES][g_ePlayerData[id][PDATA_ROTATE_MODE]] += 360.0
 
             set_pev(eProp[PROP_ID], pev_angles, eProp[PROP_ANGLES])
             ArraySetArray(g_aProp, iItem, eProp)
@@ -1003,8 +984,8 @@ public menuHandlerRotate(id, menu, item)
         case ROTATE_DOWN:
         {
             pev(eProp[PROP_ID], pev_angles, eProp[PROP_ANGLES])
-            eProp[PROP_ANGLES][0] += 22.5
-            if ( eProp[PROP_ANGLES][0] > 180.0 ) eProp[PROP_ANGLES][0] -= 360.0
+            eProp[PROP_ANGLES][g_ePlayerData[id][PDATA_ROTATE_MODE]] += 22.5
+            if ( eProp[PROP_ANGLES][g_ePlayerData[id][PDATA_ROTATE_MODE]] > 180.0 ) eProp[PROP_ANGLES][g_ePlayerData[id][PDATA_ROTATE_MODE]] -= 360.0
 
             set_pev(eProp[PROP_ID], pev_angles, eProp[PROP_ANGLES])
             ArraySetArray(g_aProp, iItem, eProp)
@@ -1016,6 +997,14 @@ public menuHandlerRotate(id, menu, item)
         {
             eProp[PROP_FLAGS] ^= FLAG_GROUND
             ArraySetArray(g_aProp, iItem, eProp)
+
+            propSound(id, SOUND_MENU_NAV)
+            propMenu(id, MENU_ROTATE)
+        }
+        case ROTATE_MODE:
+        {
+            if ( ++ g_ePlayerData[id][PDATA_ROTATE_MODE] > ROTATE_MODE_ROLL )
+                g_ePlayerData[id][PDATA_ROTATE_MODE] = ROTATE_MODE_PITCH
 
             propSound(id, SOUND_MENU_NAV)
             propMenu(id, MENU_ROTATE)
@@ -1088,6 +1077,7 @@ stock propCreate(id, iItem)
     {
         g_ePlayerData[id][PDATA_PROP_GHOST] = eProp[PROP_ID]
         g_ePlayerData[id][PDATA_PROP_ACTION] = true
+        g_ePlayerData[id][PDATA_ROTATE_MODE] = ROTATE_MODE_YAW
         g_ePlayerData[id][PDATA_OFFSET] = g_eSettings[SETTING_OFFSET_BASE]
 
         eProp[PROP_FLAGS] |= FLAG_GHOST
@@ -1509,6 +1499,7 @@ stock propSetBox(eProp[PROP])
         Float:fForward[3], Float:fRight[3], Float:fUp[3],
         Float:fCorners[8][3]
 
+    eProp[PROP_ANGLES][0] = -eProp[PROP_ANGLES][0]
     engfunc(EngFunc_AngleVectors, eProp[PROP_ANGLES], fForward, fRight, fUp)
     xs_vec_copy(eProp[PROP_MINS], fMins)
     xs_vec_copy(eProp[PROP_MAXS], fMaxs)
@@ -1537,6 +1528,16 @@ stock propSetBox(eProp[PROP])
 
     xs_vec_copy(fMins, eProp[PROP_MINS])
     xs_vec_copy(fMaxs, eProp[PROP_MAXS])
+}
+
+public propSparks(Float:fOrigin[3])
+{
+    message_begin_f(MSG_PVS, SVC_TEMPENTITY, fOrigin)
+    write_byte(TE_SPARKS)
+    write_coord_f(fOrigin[0])
+    write_coord_f(fOrigin[1])
+    write_coord_f(fOrigin[2])
+    message_end()
 }
 
 stock boxRotate(Float:fLocal[3], Float:fForward[3], Float:fRight[3], Float:fUp[3])
