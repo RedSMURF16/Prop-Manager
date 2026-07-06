@@ -26,7 +26,7 @@ PROP_ROTATE_PITCH                 = \r[PITCH]
 PROP_ROTATE_YAW                   = \y[YAW]
 PROP_ROTATE_ROLL                  = \d[ROLL]
 
-PROP_MENU_TITLE                   = \dProp - Version \y%s
+PROP_MENU_TITLE                   = \dProp Manager - Version \y%s
 PROP_MENU_TITLE_PAGE              = \yPage:\r
 PROP_ROOT_CREATE                  = Create Prop
 PROP_ROOT_REMOVE                  = Remove Prop

@@ -693,11 +693,15 @@ public menuCreate(iMenu)
 
 public menuHandlerCreate(id, menu, item)
 {
-    if ( item == MENU_EXIT
-    || !is_user_alive(id) )
+    if ( !is_user_alive(id) )
     {
         menu_destroy(menu)
         return PLUGIN_HANDLED
+    }
+    else if ( item == MENU_EXIT )
+    {
+        propSound(id, SOUND_MENU_NAV)
+        propMenu(id, MENU_ROOT)
     }
 
     propCreate(id, item)
@@ -833,6 +837,14 @@ public menuHandlerShow(id, menu, item)
             propSound(id, SOUND_MENU_ALERT)
             propMenu(id, MENU_SHOW)
         }
+        case MENU_EXIT:
+        {
+            propSound(id, SOUND_MENU_NAV)
+            propMenu(id, MENU_SHOW)
+
+            g_ePlayerData[id][PDATA_PROP_ACTION] = false
+            g_ePlayerData[id][PDATA_PROP_MENU] = 0
+        }
         default:
         {
             g_ePlayerData[id][PDATA_PROP_ACTION] = false
@@ -918,6 +930,14 @@ public menuHandlerRemove(id, menu, item)
 
             propSound(id, SOUND_MENU_ALERT)
             propMenu(id, MENU_ROOT)
+        }
+        case MENU_EXIT:
+        {
+            propSound(id, SOUND_MENU_REMOVE)
+            propMenu(id, MENU_REMOVE)
+
+            g_ePlayerData[id][PDATA_PROP_MENU] = 0
+            g_ePlayerData[id][PDATA_PROP_ACTION] = false
         }
         default:
         {
@@ -1028,10 +1048,21 @@ public menuHandlerRotate(id, menu, item)
             propSound(id, SOUND_MENU_NAV)
             propMenu(id, MENU_ROOT)
         }
+        case MENU_EXIT:
+        {
+            propKill(eProp[PROP_ID])
+            propRemove(iItem)
+            g_ePlayerData[id][PDATA_PROP_GHOST] = 0
+            g_ePlayerData[id][PDATA_PROP_ACTION] = false
+
+            propSound(id, SOUND_MENU_NAV)
+            propMenu(id, MENU_CREATE)
+        }
         default:
         {
             propKill(eProp[PROP_ID])
             propRemove(iItem)
+
             g_ePlayerData[id][PDATA_PROP_GHOST] = 0
             g_ePlayerData[id][PDATA_PROP_ACTION] = false
         }
