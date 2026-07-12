@@ -156,7 +156,10 @@ enum _:PLAYER_DATA
     bool:PDATA_PROP_ACTION,
     PDATA_ROTATE_MODE,
     Float:PDATA_OFFSET,
-    Float:PDATA_NEXT_OFFSET
+    Float:PDATA_NEXT_OFFSET,
+
+    PDATA_MENU_TYPE,
+    bool:PDATA_MENU_TRACE
 }
 
 enum
@@ -339,21 +342,14 @@ public eventRoundStart()
     for ( new i = 0; i < g_iProp; i ++ )
     {
         ArrayGetArray(g_aProp, i, eProp)
-
         if ( eProp[PROP_SHOW] != SHOW_DEFAULT )
             continue
 
+        propReset(eProp)
         if ( eProp[PROP_SPAWN_CHANCE] >= random_float(0.0, 1.0) )
         {
             eProp[PROP_FLAGS] |= FLAG_SHOW
-            if ( eProp[PROP_FLAGS] & FLAG_SOLID )
-                set_pev(eProp[PROP_ID], pev_solid, SOLID_BBOX)
-        }
-        else
-        {
-            eProp[PROP_FLAGS] &= ~FLAG_SHOW
-            if ( eProp[PROP_FLAGS] & FLAG_SOLID )
-                set_pev(eProp[PROP_ID], pev_solid, SOLID_NOT)
+            set_pev(eProp[PROP_ID], pev_solid, SOLID_BBOX)
         }
 
         ArraySetArray(g_aProp, i, eProp)
@@ -385,7 +381,7 @@ ReadFile()
         set_fail_state("An error occured during the opening of the configuration file !")
     }
 
-    new szData[MAX_RESOURCE_PATH_LENGTH], szKey[MAX_VALUE_LENGTH], szValue[MAX_VALUE_LENGTH],
+    new szData[MAX_FILE_CELL_SIZE], szKey[MAX_VALUE_LENGTH], szValue[MAX_VALUE_LENGTH],
         eProp[PROP], iSection = SECTION_NONE, iLine, iPos
 
     while( !feof(iFile) )
@@ -549,6 +545,9 @@ public propInit()
 
 public propMenu(id, iType)
 {
+    if ( !is_user_connected(id) )
+        return PLUGIN_HANDLED
+
     new szData[64], iMenu
     formatex(szData, charsmax(szData), "%L", id, "PROP_MENU_TITLE", PLUGIN_VERSION)
     iMenu = menu_create(szData, g_szMenuHandler[iType])
@@ -733,6 +732,7 @@ public menuShow(id, iMenu)
     menu_additem(iMenu, szItem)
 
     g_ePlayerData[id][PDATA_PROP_ACTION] = true
+    g_ePlayerData[id][PDATA_MENU_TYPE] = MENU_SHOW
     eProp[PROP_FLAGS] |= FLAG_SELECT
     ArraySetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
 }
@@ -741,8 +741,11 @@ public menuHandlerShow(id, menu, item)
 {
     new eProp[PROP]
     ArrayGetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
-    eProp[PROP_FLAGS] &= ~FLAG_SELECT
-    ArraySetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
+    if ( !g_ePlayerData[id][PDATA_MENU_TRACE] )
+    {
+        eProp[PROP_FLAGS] &= ~FLAG_SELECT
+        ArraySetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
+    }
 
     switch( item )
     {
@@ -839,11 +842,16 @@ public menuHandlerShow(id, menu, item)
         }
         case MENU_EXIT:
         {
-            propSound(id, SOUND_MENU_NAV)
-            propMenu(id, MENU_SHOW)
+            if ( !g_ePlayerData[id][PDATA_MENU_TRACE] )
+            {
+                propSound(id, SOUND_MENU_NAV)
+                propMenu(id, MENU_ROOT)
 
-            g_ePlayerData[id][PDATA_PROP_ACTION] = false
-            g_ePlayerData[id][PDATA_PROP_MENU] = 0
+                g_ePlayerData[id][PDATA_PROP_MENU] = 0
+                g_ePlayerData[id][PDATA_PROP_ACTION] = false
+            }
+
+            g_ePlayerData[id][PDATA_MENU_TRACE] = false
         }
         default:
         {
@@ -870,6 +878,7 @@ public menuRemove(id, iMenu)
     menu_additem(iMenu, szItem)
 
     g_ePlayerData[id][PDATA_PROP_ACTION] = true
+    g_ePlayerData[id][PDATA_MENU_TYPE] = MENU_REMOVE
     eProp[PROP_FLAGS] |= FLAG_SELECT
     ArraySetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
 }
@@ -877,10 +886,12 @@ public menuRemove(id, iMenu)
 public menuHandlerRemove(id, menu, item)
 {
     new eProp[PROP]
-
     ArrayGetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
-    eProp[PROP_FLAGS] &= ~FLAG_SELECT
-    ArraySetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
+    if ( !g_ePlayerData[id][PDATA_MENU_TRACE] )
+    {
+        eProp[PROP_FLAGS] &= ~FLAG_SELECT
+        ArraySetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
+    }
 
     switch( item )
     {
@@ -933,11 +944,16 @@ public menuHandlerRemove(id, menu, item)
         }
         case MENU_EXIT:
         {
-            propSound(id, SOUND_MENU_REMOVE)
-            propMenu(id, MENU_REMOVE)
+            if ( !g_ePlayerData[id][PDATA_MENU_TRACE] )
+            {
+                propSound(id, SOUND_MENU_NAV)
+                propMenu(id, MENU_ROOT)
 
-            g_ePlayerData[id][PDATA_PROP_MENU] = 0
-            g_ePlayerData[id][PDATA_PROP_ACTION] = false
+                g_ePlayerData[id][PDATA_PROP_MENU] = 0
+                g_ePlayerData[id][PDATA_PROP_ACTION] = false
+            }
+
+            g_ePlayerData[id][PDATA_MENU_TRACE] = false
         }
         default:
         {
@@ -1035,6 +1051,7 @@ public menuHandlerRotate(id, menu, item)
             g_ePlayerData[id][PDATA_PROP_GHOST] = 0
             g_ePlayerData[id][PDATA_PROP_ACTION] = false
 
+            eProp[PROP_ANGLES][0] = -eProp[PROP_ANGLES][0]
             eProp[PROP_FLAGS] |= FLAG_SHOW
             eProp[PROP_FLAGS] &= ~FLAG_GHOST
 
@@ -1314,7 +1331,6 @@ stock loadDataProp(Float:fOrigin[3], Float:fAngles[3], Float:fMins[3], Float:fMa
 
     eProp[PROP_SHOW] = iShow
     eProp[PROP_FLAGS] = iFlags
-
     if ( eProp[PROP_FLAGS] & FLAG_ANIM )
         propSetAnim(eProp)
     if ( eProp[PROP_FLAGS] & (FLAG_SHOW | FLAG_SOLID) )
@@ -1517,10 +1533,9 @@ stock propCheck(id)
         eProp[PROP_FLAGS] &= ~FLAG_SELECT
         ArraySetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
 
-        ArrayGetArray(g_aProp, iBest, eProp)
-        eProp[PROP_FLAGS] |= FLAG_SELECT
-        ArraySetArray(g_aProp, iBest, eProp)
+        g_ePlayerData[id][PDATA_MENU_TRACE] = true
         g_ePlayerData[id][PDATA_PROP_MENU] = iBest
+        propMenu(id, g_ePlayerData[id][PDATA_MENU_TYPE])
     }
 }
 
@@ -1559,16 +1574,6 @@ stock propSetBox(eProp[PROP])
 
     xs_vec_copy(fMins, eProp[PROP_MINS])
     xs_vec_copy(fMaxs, eProp[PROP_MAXS])
-}
-
-public propSparks(Float:fOrigin[3])
-{
-    message_begin_f(MSG_PVS, SVC_TEMPENTITY, fOrigin)
-    write_byte(TE_SPARKS)
-    write_coord_f(fOrigin[0])
-    write_coord_f(fOrigin[1])
-    write_coord_f(fOrigin[2])
-    message_end()
 }
 
 stock boxRotate(Float:fLocal[3], Float:fForward[3], Float:fRight[3], Float:fUp[3])
@@ -1634,6 +1639,12 @@ stock propSetAnim(eProp[PROP])
     set_pev(eProp[PROP_ID], pev_frame, 0)
     set_pev(eProp[PROP_ID], pev_framerate, eProp[PROP_FRAMERATE])
     set_pev(eProp[PROP_ID], pev_animtime, get_gametime())
+}
+
+stock propReset(eProp[PROP])
+{
+    set_pev(eProp[PROP_ID], pev_solid, SOLID_NOT)
+    eProp[PROP_FLAGS] &= ~FLAG_SHOW
 }
 
 stock propSound(iEnt, iSound, bool:bPlayer = true)
