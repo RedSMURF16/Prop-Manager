@@ -95,13 +95,6 @@ enum
 
 enum
 {
-    SHOW_DEFAULT,
-    SHOW_FORCE_SHOW,
-    SHOW_FORCE_HIDE
-}
-
-enum
-{
     ROTATE_MODE_PITCH,
     ROTATE_MODE_YAW,
     ROTATE_MODE_ROLL
@@ -134,7 +127,6 @@ enum _:PROP
 {
     PROP_ID,
     PROP_ITEM,
-    PROP_SHOW,
     PROP_FLAGS,
     PROP_NAME[MAX_VALUE_LENGTH],
     PROP_MODEL[MAX_RESOURCE_PATH_LENGTH],
@@ -196,8 +188,7 @@ enum
 
     SHOW_CURRENT = 3,
     SHOW_ALL_SHOW,
-    SHOW_ALL_HIDE,
-    SHOW_ALL_DEFAULT
+    SHOW_ALL_HIDE
 }
 
 enum
@@ -248,9 +239,6 @@ new Array:g_aProp,
     g_iProp, g_iPropConfig,
     g_iMaxPlayers
 
-new g_szShow[][] = {"PROP_DEFAULT", "PROP_SHOWN", "PROP_HIDDEN"}
-new g_szShowChat[][] = {"PROP_CHAT_DEFAULT", "PROP_CHAT_SHOWN", "PROP_CHAT_HIDDEN"}
-new g_szShowColor[][] = {"\d", "\y", "\r"}
 new g_szRotateMode[][] = {"PROP_ROTATE_PITCH", "PROP_ROTATE_YAW", "PROP_ROTATE_ROLL"}
 
 public plugin_init()
@@ -342,7 +330,7 @@ public eventRoundStart()
     for ( new i = 0; i < g_iProp; i ++ )
     {
         ArrayGetArray(g_aProp, i, eProp)
-        if ( eProp[PROP_SHOW] != SHOW_DEFAULT )
+        if ( !(eProp[PROP_FLAGS] & FLAG_SHOW) )
             continue
 
         propReset(eProp)
@@ -719,16 +707,13 @@ public menuShow(id, iMenu)
     ArrayGetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
 
     formatex(szItem, charsmax(szItem), "%L", id, "PROP_SHOW_CURRENT",
-    g_szShowColor[eProp[PROP_SHOW]], eProp[PROP_NAME], id, g_szShow[eProp[PROP_SHOW]])
+    eProp[PROP_FLAGS] & FLAG_SHOW ? "\y" : "\r", eProp[PROP_NAME], id, eProp[PROP_FLAGS] & FLAG_SHOW ? "PROP_SHOWN" : "PROP_HIDDEN")
     menu_additem(iMenu, szItem)
 
     formatex(szItem, charsmax(szItem), "%L", id, "PROP_SHOW_ALL_SHOW")
     menu_additem(iMenu, szItem)
 
     formatex(szItem, charsmax(szItem), "%L", id, "PROP_SHOW_ALL_HIDE")
-    menu_additem(iMenu, szItem)
-
-    formatex(szItem, charsmax(szItem), "%L", id, "PROP_SHOW_ALL_DEFAULT")
     menu_additem(iMenu, szItem)
 
     g_ePlayerData[id][PDATA_PROP_ACTION] = true
@@ -771,23 +756,11 @@ public menuHandlerShow(id, menu, item)
         }
         case SHOW_CURRENT:
         {
-            if ( ++ eProp[PROP_SHOW] > SHOW_FORCE_HIDE )
-                eProp[PROP_SHOW] = SHOW_DEFAULT
-
-            if ( eProp[PROP_SHOW] == SHOW_FORCE_SHOW
-            || eProp[PROP_SHOW] == SHOW_DEFAULT )
-            {
-                set_pev(eProp[PROP_ID], pev_solid, SOLID_BBOX)
-                eProp[PROP_FLAGS] |= FLAG_SHOW
-            }
-            else if ( eProp[PROP_SHOW] == SHOW_FORCE_HIDE )
-            {
-                set_pev(eProp[PROP_ID], pev_solid, SOLID_NOT)
-                eProp[PROP_FLAGS] &= ~FLAG_SHOW
-            }
+            eProp[PROP_FLAGS] ^= FLAG_SHOW
+            set_pev(eProp[PROP_ID], pev_solid, eProp[PROP_FLAGS] & FLAG_SHOW ? SOLID_BBOX : SOLID_NOT)
 
             client_print_color(id, id, "%L %L", id, "PROP_CHAT_TAG", id, "PROP_CHAT_SHOW_CURRENT",
-            eProp[PROP_NAME], id, g_szShowChat[eProp[PROP_SHOW]])
+            eProp[PROP_NAME], id, eProp[PROP_FLAGS] & FLAG_SHOW ? "PROP_CHAT_SHOWN" : "PROP_CHAT_HIDDEN")
             ArraySetArray(g_aProp, g_ePlayerData[id][PDATA_PROP_MENU], eProp)
 
             propSound(id, SOUND_MENU_NAV)
@@ -799,7 +772,6 @@ public menuHandlerShow(id, menu, item)
             {
                 ArrayGetArray(g_aProp, i, eProp)
                 eProp[PROP_FLAGS] |= FLAG_SHOW
-                eProp[PROP_SHOW] = SHOW_FORCE_SHOW
                 set_pev(eProp[PROP_ID], pev_solid, SOLID_BBOX)
 
                 ArraySetArray(g_aProp, i, eProp)
@@ -815,28 +787,12 @@ public menuHandlerShow(id, menu, item)
             {
                 ArrayGetArray(g_aProp, i, eProp)
                 eProp[PROP_FLAGS] &= ~FLAG_SHOW
-                eProp[PROP_SHOW] = SHOW_FORCE_HIDE
                 set_pev(eProp[PROP_ID], pev_solid, SOLID_NOT)
 
                 ArraySetArray(g_aProp, i, eProp)
             }
 
             client_print_color(id, id, "%L %L", id, "PROP_CHAT_TAG", id, "PROP_CHAT_SHOW_ALL_HIDDEN")
-            propSound(id, SOUND_MENU_ALERT)
-            propMenu(id, MENU_SHOW)
-        }
-        case SHOW_ALL_DEFAULT:
-        {
-            for ( new i = 0; i < g_iProp; i ++ )
-            {
-                ArrayGetArray(g_aProp, i, eProp)
-                eProp[PROP_FLAGS] |= FLAG_SHOW
-                eProp[PROP_SHOW] = SHOW_DEFAULT
-                set_pev(eProp[PROP_ID], pev_solid, SOLID_BBOX)
-                ArraySetArray(g_aProp, i, eProp)
-            }
-
-            client_print_color(id, id, "%L %L", id, "PROP_CHAT_TAG", id, "PROP_CHAT_SHOW_ALL_DEFAULT")
             propSound(id, SOUND_MENU_ALERT)
             propMenu(id, MENU_SHOW)
         }
@@ -1057,8 +1013,7 @@ public menuHandlerRotate(id, menu, item)
 
             if ( eProp[PROP_FLAGS] & FLAG_ANIM )
                 propSetAnim(eProp)
-            if ( eProp[PROP_FLAGS] & FLAG_SOLID )
-                propSetSolid(eProp)
+            propSetSolid(eProp, eProp[PROP_FLAGS] & FLAG_SOLID ? true : false)
             ArraySetArray(g_aProp, iItem, eProp)
 
             client_print_color(id, id, "%L %L", id, "PROP_CHAT_TAG", id, "PROP_CHAT_CREATE_NEW", eProp[PROP_NAME])
@@ -1199,9 +1154,6 @@ public saveData(id)
         eProp[PROP_ANGLES][0], eProp[PROP_ANGLES][1], eProp[PROP_ANGLES][2])
         fputs(iFile, szData)
 
-        formatex(szData, charsmax(szData), "show = %d^n", eProp[PROP_SHOW])
-        fputs(iFile, szData)
-
         eProp[PROP_FLAGS] &= ~(FLAG_GHOST | FLAG_SELECT)
         formatex(szData, charsmax(szData), "flags = %d^n", eProp[PROP_FLAGS])
         fputs(iFile, szData)
@@ -1219,8 +1171,7 @@ public loadData()
 {
     new szFile[128], iFile,
         szData[64], szKey[32], szValue[32],
-        Float:fOrigin[3], Float:fAngles[3], Float:fMins[3], Float:fMaxs[3], iItem,
-        iShow, iFlags, iCount = -1
+        Float:fOrigin[3], Float:fAngles[3], Float:fMins[3], Float:fMaxs[3], iItem, iFlags, iCount = -1
 
     get_mapname(szFile, charsmax(szFile))
     format(szFile, charsmax(szFile), "maps/%s_PropManager.ini", szFile)
@@ -1239,7 +1190,7 @@ public loadData()
         if ( szData[0] == '[' )
         {
             if ( iCount != -1 )
-                loadDataProp(fOrigin, fAngles, fMins, fMaxs, iShow, iFlags, iItem, iCount)
+                loadDataProp(fOrigin, fAngles, fMins, fMaxs, iFlags, iItem, iCount)
 
             iCount ++
         }
@@ -1298,10 +1249,6 @@ public loadData()
                 fAngles[1] = str_to_float(szKey)
                 fAngles[2] = str_to_float(szValue)
             }
-            else if ( equal(szKey, "show") )
-            {
-                iShow = str_to_num(szValue)
-            }
             else if ( equal(szKey, "flags") )
             {
                 iFlags = str_to_num(szValue)
@@ -1310,13 +1257,13 @@ public loadData()
     }
 
     if ( iCount != -1 )
-        loadDataProp(fOrigin, fAngles, fMins, fMaxs, iShow, iFlags, iItem, iCount)
+        loadDataProp(fOrigin, fAngles, fMins, fMaxs, iFlags, iItem, iCount)
 
     fclose(iFile)
     return PLUGIN_HANDLED
 }
 
-stock loadDataProp(Float:fOrigin[3], Float:fAngles[3], Float:fMins[3], Float:fMaxs[3], iShow, iFlags, iItem, iCount)
+stock loadDataProp(Float:fOrigin[3], Float:fAngles[3], Float:fMins[3], Float:fMaxs[3], iFlags, iItem, iCount)
 {
     new eProp[PROP]
     propCreate(0, iItem)
@@ -1329,12 +1276,10 @@ stock loadDataProp(Float:fOrigin[3], Float:fAngles[3], Float:fMins[3], Float:fMa
     xs_vec_copy(fMins, eProp[PROP_MINS])
     xs_vec_copy(fMaxs, eProp[PROP_MAXS])
 
-    eProp[PROP_SHOW] = iShow
     eProp[PROP_FLAGS] = iFlags
     if ( eProp[PROP_FLAGS] & FLAG_ANIM )
         propSetAnim(eProp)
-    if ( eProp[PROP_FLAGS] & (FLAG_SHOW | FLAG_SOLID) )
-        propSetSolid(eProp)
+    propSetSolid(eProp, eProp[PROP_FLAGS] & (FLAG_SOLID | FLAG_SHOW) == (FLAG_SOLID | FLAG_SHOW) ? true : false)
 
     ArraySetArray(g_aProp, iCount, eProp)
 }
@@ -1394,7 +1339,7 @@ public fwdAddToFullPack(es, e, iEnt, iHost, iHostFlags, iPlayer, pSet)
         if ( bHidden )
             set_es(es, ES_RenderMode, kRenderTransAlpha)
     }
-    else if ( eProp[PROP_FLAGS] & FLAG_GHOST )
+    else if ( eProp[PROP_FLAGS] & FLAG_GHOST || bHidden )
     {
         set_es(es, ES_RenderMode, kRenderTransAlpha)
         set_es(es, ES_RenderAmt, g_eSettings[SETTING_GHOST_ALPHA])
@@ -1622,15 +1567,12 @@ stock propSetOffset(eProp[PROP])
     }
 }
 
-stock propSetSolid(eProp[PROP])
+stock propSetSolid(eProp[PROP], bool:bSolid)
 {
-    new Float:fMins[3], Float:fMaxs[3]
-    set_pev(eProp[PROP_ID], pev_solid, SOLID_BBOX)
+    set_pev(eProp[PROP_ID], pev_solid, bSolid ? SOLID_BBOX : SOLID_NOT)
     set_pev(eProp[PROP_ID], pev_movetype, MOVETYPE_NONE)
 
-    xs_vec_copy(eProp[PROP_MINS], fMins)
-    xs_vec_copy(eProp[PROP_MAXS], fMaxs)
-    engfunc(EngFunc_SetSize, eProp[PROP_ID], fMins, fMaxs)
+    engfunc(EngFunc_SetSize, eProp[PROP_ID], eProp[PROP_MINS], eProp[PROP_MAXS])
     set_rendering(eProp[PROP_ID], kRenderFxNone, 255, 255, 255, kRenderNormal, 255)
 }
 

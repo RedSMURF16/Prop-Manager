@@ -6,14 +6,12 @@ PROP_CHAT_CREATE_NEW              = ^3%s ^1created
 PROP_CHAT_SHOW_CURRENT            = ^3%s ^1is %L
 PROP_CHAT_SHOW_ALL_SHOWN          = All Props are now Shown
 PROP_CHAT_SHOW_ALL_HIDDEN         = All Props are now Hidden
-PROP_CHAT_SHOW_ALL_DEFAULT        = All Props visibility reset to Default
 PROP_CHAT_REMOVE_CURRENT          = ^3%s ^1removed
 PROP_CHAT_REMOVE_ALL              = All Props removed
 PROP_CHAT_SAVE                    = Prop data saved in ^4%s
 
 PROP_CHAT_SHOWN                   = Shown
 PROP_CHAT_HIDDEN                  = Hidden
-PROP_CHAT_DEFAULT                 = reset to Default
 
 PROP_NAV_NEXT                     = Next
 PROP_NAV_BACK                     = Back
@@ -21,7 +19,6 @@ PROP_ON                           = \y[ON]
 PROP_OFF                          = \r[OFF]
 PROP_SHOWN                        = \y[SHOWN]
 PROP_HIDDEN                       = \r[HIDDEN]
-PROP_DEFAULT                      = \d[DEFAULT]
 PROP_ROTATE_PITCH                 = \r[PITCH]
 PROP_ROTATE_YAW                   = \y[YAW]
 PROP_ROTATE_ROLL                  = \d[ROLL]
@@ -39,7 +36,6 @@ PROP_ROOT_ROTATE                  = Adjust rotation
 PROP_SHOW_CURRENT                 = Show Prop >> %s%s %L
 PROP_SHOW_ALL_SHOW                = Show all Props
 PROP_SHOW_ALL_HIDE                = Hide all Props
-PROP_SHOW_ALL_DEFAULT             = Reset-Visibility for all Props
 
 PROP_REMOVE_CURRENT               = Remove Prop >> \y%s
 PROP_REMOVE_ALL                   = Remove all Props
