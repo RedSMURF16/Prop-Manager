@@ -689,6 +689,9 @@ public menuHandlerCreate(id, menu, item)
     {
         propSound(id, SOUND_MENU_NAV)
         propMenu(id, MENU_ROOT)
+
+        menu_destroy(menu)
+        return PLUGIN_HANDLED
     }
 
     propCreate(id, item)
@@ -1171,7 +1174,7 @@ public loadData()
 {
     new szFile[128], iFile,
         szData[64], szKey[32], szValue[32],
-        Float:fOrigin[3], Float:fAngles[3], Float:fMins[3], Float:fMaxs[3], iItem, iFlags, iCount = -1
+        Float:fOrigin[3], Float:fAngles[3], iItem, iFlags, iCount = -1
 
     get_mapname(szFile, charsmax(szFile))
     format(szFile, charsmax(szFile), "maps/%s_PropManager.ini", szFile)
@@ -1190,7 +1193,7 @@ public loadData()
         if ( szData[0] == '[' )
         {
             if ( iCount != -1 )
-                loadDataProp(fOrigin, fAngles, fMins, fMaxs, iFlags, iItem, iCount)
+                loadDataProp(fOrigin, fAngles, iFlags, iItem, iCount)
 
             iCount ++
         }
@@ -1222,24 +1225,6 @@ public loadData()
                 fAngles[1] = str_to_float(szKey)
                 fAngles[2] = str_to_float(szValue)
             }
-            else if ( equal(szKey, "mins") )
-            {
-                strtok(szValue, szKey, charsmax(szKey), szValue, charsmax(szValue), ' ')
-                fMins[0] = str_to_float(szKey)
-
-                strtok(szValue, szKey, charsmax(szKey), szValue, charsmax(szValue), ' ')
-                fMins[1] = str_to_float(szKey)
-                fMins[2] = str_to_float(szValue)
-            }
-            else if ( equal(szKey, "maxs") )
-            {
-                strtok(szValue, szKey, charsmax(szKey), szValue, charsmax(szValue), ' ')
-                fMaxs[0] = str_to_float(szKey)
-
-                strtok(szValue, szKey, charsmax(szKey), szValue, charsmax(szValue), ' ')
-                fMaxs[1] = str_to_float(szKey)
-                fMaxs[2] = str_to_float(szValue)
-            }
             else if ( equal(szKey, "angles") )
             {
                 strtok(szValue, szKey, charsmax(szKey), szValue, charsmax(szValue), ' ')
@@ -1257,13 +1242,13 @@ public loadData()
     }
 
     if ( iCount != -1 )
-        loadDataProp(fOrigin, fAngles, fMins, fMaxs, iFlags, iItem, iCount)
+        loadDataProp(fOrigin, fAngles, iFlags, iItem, iCount)
 
     fclose(iFile)
     return PLUGIN_HANDLED
 }
 
-stock loadDataProp(Float:fOrigin[3], Float:fAngles[3], Float:fMins[3], Float:fMaxs[3], iFlags, iItem, iCount)
+stock loadDataProp(Float:fOrigin[3], Float:fAngles[3], iFlags, iItem, iCount)
 {
     new eProp[PROP]
     propCreate(0, iItem)
@@ -1273,8 +1258,6 @@ stock loadDataProp(Float:fOrigin[3], Float:fAngles[3], Float:fMins[3], Float:fMa
     xs_vec_copy(fAngles, eProp[PROP_ANGLES])
     set_pev(eProp[PROP_ID], pev_origin, fOrigin)
     set_pev(eProp[PROP_ID], pev_angles, fAngles)
-    xs_vec_copy(fMins, eProp[PROP_MINS])
-    xs_vec_copy(fMaxs, eProp[PROP_MAXS])
 
     eProp[PROP_FLAGS] = iFlags
     if ( eProp[PROP_FLAGS] & FLAG_ANIM )
