@@ -1145,18 +1145,6 @@ public saveData(id)
         eProp[PROP_ANGLES][0], eProp[PROP_ANGLES][1], eProp[PROP_ANGLES][2])
         fputs(iFile, szData)
 
-        formatex(szData, charsmax(szData), "mins = %.2f %.2f %.2f^n",
-        eProp[PROP_MINS][0], eProp[PROP_MINS][1], eProp[PROP_MINS][2])
-        fputs(iFile, szData)
-
-        formatex(szData, charsmax(szData), "maxs = %.2f %.2f %.2f^n",
-        eProp[PROP_MAXS][0], eProp[PROP_MAXS][1], eProp[PROP_MAXS][2])
-        fputs(iFile, szData)
-
-        formatex(szData, charsmax(szData), "angles = %.2f %.2f %.2f^n",
-        eProp[PROP_ANGLES][0], eProp[PROP_ANGLES][1], eProp[PROP_ANGLES][2])
-        fputs(iFile, szData)
-
         eProp[PROP_FLAGS] &= ~(FLAG_GHOST | FLAG_SELECT)
         formatex(szData, charsmax(szData), "flags = %d^n", eProp[PROP_FLAGS])
         fputs(iFile, szData)
@@ -1262,6 +1250,7 @@ stock loadDataProp(Float:fOrigin[3], Float:fAngles[3], iFlags, iItem, iCount)
     eProp[PROP_FLAGS] = iFlags
     if ( eProp[PROP_FLAGS] & FLAG_ANIM )
         propSetAnim(eProp)
+    propSetBox(eProp)
     propSetSolid(eProp, eProp[PROP_FLAGS] & (FLAG_SOLID | FLAG_SHOW) == (FLAG_SOLID | FLAG_SHOW) ? true : false)
 
     ArraySetArray(g_aProp, iCount, eProp)
@@ -1533,7 +1522,7 @@ stock propSetOffset(eProp[PROP])
         get_tr2(0, TR_vecEndPos, eProp[PROP_ORIGIN])
     }
 
-    for ( new i = 0; i < 6; i ++ )
+    for ( new i = 5; i >= 0; i -- )
     {
         xs_vec_mul_scalar(g_fDirections[i], 9999.9, fVec1)
         xs_vec_add(fVec1, eProp[PROP_ORIGIN], fVec1)
@@ -1548,6 +1537,16 @@ stock propSetOffset(eProp[PROP])
             xs_vec_add(eProp[PROP_ORIGIN], fVec1, eProp[PROP_ORIGIN])
         }
     }
+}
+
+public propSpark(Float:fOrigin[3])
+{
+    message_begin_f(MSG_PVS, SVC_TEMPENTITY, fOrigin)
+    write_byte(TE_SPARKS)
+    write_coord_f(fOrigin[0])
+    write_coord_f(fOrigin[1])
+    write_coord_f(fOrigin[2])
+    message_end()
 }
 
 stock propSetSolid(eProp[PROP], bool:bSolid)
