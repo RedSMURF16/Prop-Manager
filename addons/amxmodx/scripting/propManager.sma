@@ -1010,7 +1010,6 @@ public menuHandlerRotate(id, menu, item)
             g_ePlayerData[id][PDATA_PROP_GHOST] = 0
             g_ePlayerData[id][PDATA_PROP_ACTION] = false
 
-            eProp[PROP_ANGLES][0] = -eProp[PROP_ANGLES][0]
             eProp[PROP_FLAGS] |= FLAG_SHOW
             eProp[PROP_FLAGS] &= ~FLAG_GHOST
 
@@ -1242,6 +1241,7 @@ stock loadDataProp(Float:fOrigin[3], Float:fAngles[3], iFlags, iItem, iCount)
     propCreate(0, iItem)
     ArrayGetArray(g_aProp, iCount, eProp)
 
+    fAngles[0] = -fAngles[0]
     xs_vec_copy(fOrigin, eProp[PROP_ORIGIN])
     xs_vec_copy(fAngles, eProp[PROP_ANGLES])
     set_pev(eProp[PROP_ID], pev_origin, fOrigin)
