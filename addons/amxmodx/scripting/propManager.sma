@@ -507,11 +507,11 @@ public client_authorized(id)
 
 public client_disconnected(id)
 {
-    new iItem
+    new eProp[PROP], iItem
     if ( g_ePlayerData[id][PDATA_PROP_GHOST]
-    && (iItem = pev(g_ePlayerData[id][PDATA_PROP_GHOST], PROP_ARRAY_ITEM)) != -1 )
+    && (iItem = propGet(eProp, g_ePlayerData[id][PDATA_PROP_GHOST])) != -1 )
     {
-        propKill(g_ePlayerData[id][PDATA_PROP_GHOST])
+        propKill(eProp[PROP_ID])
         propRemove(iItem)
     }
 
