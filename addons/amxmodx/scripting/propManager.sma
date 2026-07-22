@@ -245,10 +245,10 @@ public plugin_init()
 {
     register_plugin("Prop Manager", PLUGIN_VERSION, "RedSMURF")
 
-    register_clcmd("say /pm",           "cmdMenu", ADMIN_RCON)
-    register_clcmd("say_team /pm",      "cmdMenu", ADMIN_RCON)
-    register_clcmd("say /prop",         "cmdMenu", ADMIN_RCON)
-    register_clcmd("say_team /prop",    "cmdMenu", ADMIN_RCON)
+    register_clcmd("say /pm",           "cmdMenu", ADMIN_RCON, "-- Opens the Prop Manager menu.")
+    register_clcmd("say_team /pm",      "cmdMenu", ADMIN_RCON, "-- Opens the Prop Manager menu.")
+    register_clcmd("say /prop",         "cmdMenu", ADMIN_RCON, "-- Opens the Prop Manager menu.")
+    register_clcmd("say_team /prop",    "cmdMenu", ADMIN_RCON, "-- Opens the Prop Manager menu.")
     register_concmd("pm_reload",        "cmdReload", ADMIN_RCON, "-- Reloads the configuration file")
     register_concmd("prop_reload",      "cmdReload", ADMIN_RCON, "-- Reloads the configuration file")
 
@@ -301,23 +301,6 @@ public cmdReload(id, iLevel, iCmd)
     console_print(id, "The configuration file has been reloaded successfully !")
 
     return PLUGIN_HANDLED
-}
-
-public client_command(id)
-{
-    if ( !g_ePlayerData[id][PDATA_PROP_GHOST] )
-        return PLUGIN_CONTINUE
-
-    new szCmd[16]
-    read_argv(0, szCmd, charsmax(szCmd))
-
-    if ( contain(szCmd, "weapon_") != -1
-    || equal(szCmd, "invnext")
-    || equal(szCmd, "invprev")
-    || equal(szCmd, "lastinv") )
-        return PLUGIN_HANDLED
-
-    return PLUGIN_CONTINUE
 }
 
 public eventRoundStart()
