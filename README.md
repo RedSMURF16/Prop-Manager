@@ -15,7 +15,6 @@ Custom setups are saved per map and automatically loaded on every map start.
 - Configurable per prop: model, solidity, animation sequence, framerate and spawn chance
 - Custom bounding box per prop for accurate collision matching the model's shape
 - Per-map saving and automatic loading of placed props
-- [color=red]Requires AMX Mod X 1.9.0+[/color]
 
 ## 💬 Commands
 - `say /pm` - Opens the Prop Manager menu.
@@ -41,3 +40,5 @@ Custom setups are saved per map and automatically loaded on every map start.
 ```text
 * v1.0: Initial release.
 ```
+
+[![Watch on YouTube](https://img.shields.io/badge/YouTube-Watch%20video-FF0000?logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=6wWm1Pe0n2Q)
