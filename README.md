@@ -16,6 +16,10 @@ Custom setups are saved per map and automatically loaded on every map start.
 - Custom bounding box per prop for accurate collision matching the model's shape
 - Per-map saving and automatic loading of placed props
 
+## 📋 Requirements
+- ReGameDLL
+- AMX Mod X 1.10+
+
 ## 💬 Commands
 - `say /pm` - Opens the Prop Manager menu.
 - `say_team /pm` - Opens the Prop Manager menu.
