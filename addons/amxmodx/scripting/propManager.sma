@@ -333,9 +333,6 @@ ReadFile()
 {
     if ( g_bFileWasRead )
     {
-        for ( new id = 1; id <= g_iMaxPlayers; id ++ )
-            if ( is_user_connected(id))
-                UpdateData(id)
         ArrayClear(g_aPropConfig)
         g_iPropConfig = 0
     }
