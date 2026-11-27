@@ -1,7 +1,7 @@
 <h1 align="center">Prop Manager</h1>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=6wWm1Pe0n2Q"><img src="https://img.youtube.com/vi/6wWm1Pe0n2Q/maxresdefault.jpg" alt="Watch on YouTube" width="600"></a>
+  <img src="images/demo.gif" alt="Prop Manager">
 </p>
 
 ## 📝 Description
@@ -15,10 +15,6 @@ Custom setups are saved per map and automatically loaded on every map start.
 - Configurable per prop: model, solidity, animation sequence, framerate and spawn chance
 - Custom bounding box per prop for accurate collision matching the model's shape
 - Per-map saving and automatic loading of placed props
-
-## 📋 Requirements
-- ReGameDLL
-- AMX Mod X 1.10+
 
 ## 💬 Commands
 - `say /pm` - Opens the Prop Manager menu.
